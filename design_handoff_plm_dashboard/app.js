@@ -105,6 +105,8 @@
     // count is only the fallback while the snapshot has not loaded yet.
     const snapH = window.ExecCore && window.ExecCore.data().H;
     const overdueTotal = snapH && snapH.exception_counts ? snapH.exception_counts.overdue : D.WORK_PACKAGES.filter(D.isOverdue).length;
+    // A saved view that no longer exists falls back to home before the menu is built, so the first paint marks it active.
+    if (!VIEWS.some((v) => v.key === state.view)) { state.view = 'home'; save(); }
     let nav = '', lastSection = '';
     VIEWS.forEach((v) => {
       if (v.section && v.section !== lastSection) { nav += `<div class="nav-section-label">${v.section}</div>`; lastSection = v.section; }
@@ -119,7 +121,6 @@
       + `${String(received.getHours()).padStart(2, '0')}:${String(received.getMinutes()).padStart(2, '0')}` : '수신 이력 없음';
     const syncLabel = D._loading ? '연동 중…' : refreshStatus === 'error' ? (D.lastReceivedAt ? '갱신 실패 · 이전 데이터' : '연동 오류')
       : D._error ? '연동 오류' : D.lastReceivedAt ? 'Live · 연동 완료' : '수신 이력 없음';
-    if (!VIEWS.some((v) => v.key === state.view)) { state.view = 'home'; save(); }
     const cur = VIEWS.find((v) => v.key === state.view);
     const refreshTone = refreshStatus === 'loading' ? ' data-refresh-loading="true"'
       : refreshStatus === 'error' ? ' data-refresh-error="true"' : '';
