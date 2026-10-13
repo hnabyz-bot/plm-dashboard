@@ -32,7 +32,7 @@
   const SYMBOL = { full: '●', partial: '◐', renewing: '갱신중', expired: '만료' };
   const STATE_TITLE = { full: '등록부에 있는 모델 모두 유효', partial: '등록부에 있는 모델 중 일부만 유효 — 제품군을 펼쳐 모델별로 확인', renewing: '갱신 진행 중', expired: '만료·철회' };
   const MODEL_SYMBOL = { '유효': '●', '갱신중': '갱신중', '만료': '만료', '철회': '철회' };
-  const regSub = (g) => `기준 ${esc(g.synced_at ? new Date(g.synced_at).toLocaleString('ko-KR') : '–')} · 커밋 ${esc(String(g.commit || '').slice(0, 7))}${g.excluded_rows ? ` · 오류로 제외된 행 ${g.excluded_rows}건` : ''}`;
+  const regSub = (g) => `등록부 동기화 ${esc(g.synced_at ? new Date(g.synced_at).toLocaleString('ko-KR') : '–')} · 커밋 ${esc(String(g.commit || '').slice(0, 7))}${g.excluded_rows ? ` · 오류로 제외된 행 ${g.excluded_rows}건` : ''}`;
   const open = { fam: new Set(), country: new Set() };      // expanded product families / company-licence countries (view state only)
   const toggleAll = (kind, label) => `<span style="float:right"><button type="button" class="mini-btn" data-ra-all="${kind}:open">${label} 모두 펼치기</button> <button type="button" class="mini-btn" data-ra-all="${kind}:close">모두 접기</button></span>`;
   const tog = (attr, key, isOpen) => `<button type="button" class="mini-btn" ${attr}="${esc(key)}" aria-expanded="${isOpen}" aria-label="${isOpen ? '접기' : '펼치기'}" title="${isOpen ? '접기' : '펼치기'}" style="margin-right:10px;width:32px;height:32px;padding:0;font-size:20px;line-height:1;vertical-align:middle;cursor:pointer">${isOpen ? '▾' : '▸'}</button>`;

@@ -148,7 +148,7 @@
     </div>`;
   }
 
-  /* ---- decisions top 5 ---- */
+  /* ---- next meeting ---- */
   // next weekly meeting: Thursday 10:00 (today when it is Thursday before 10:00)
   function nextMeeting() {
     const now = new Date(), dow = now.getDay();
@@ -157,24 +157,10 @@
     return `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}(목) 회의`;
   }
 
-  function decisions(stats) {
-    const UI = window.UI;
-    const crit = H.items.filter((i) => i.flags.some((f) => f === 'blocked_aging' || f === 'missing_update' || f === 'triage_overdue') || (!i.assignee && i.flags.some((f) => ['overdue', 'missing_update', 'blocked_aging'].includes(f))));
-    const score = (i) => (i.flags.includes('blocked_aging') ? 1000 + (i.blocked_since ? days(today(), i.blocked_since.slice(0, 10)) : 0) : 0) + (i.flags.includes('missing_update') ? 100 + (i.due ? days(today(), i.due) : 0) : 0) + (i.flags.includes('triage_overdue') ? 80 + days(today(), i.created) : 0) + (!i.assignee ? 50 : 0);
-    const top = crit.sort((a, b) => score(b) - score(a)).slice(0, 5);
-    const ownerOf = (i) => { const ident = (I.project_status.find((p) => p.project === i.project) || {}).identifier; const l = I.product_lines.find((x) => x.projects.includes(ident)); return l ? l.owner : '–'; };
-    const ageOf = (i) => i.age_days ?? (I.items.find((x) => x.id === i.id) || {}).age_days;
-    return UI.panel({ title: '이번 주 결정 TOP 5', sub: `결정 필요 ${crit.length}건 중 가장 오래된 것 · 목요일 회의 안건과 같은 기준 · 결정은 OP에서 담당자·마감일을 고치면 기록`,
-      body: `<table class="tbl"><thead><tr><th>#</th><th>일감</th><th>제품군/과제</th><th>왜</th><th>담당자</th><th>결정 주체</th><th>결정 시한</th><th>발견 후</th></tr></thead><tbody>
-      ${top.map((i, n) => `<tr><td>${n + 1}</td><td>${wp(i)} ${esc(i.subject.slice(0, 40))}</td><td>${esc(i.project)}</td>
-        <td style="font-size:12px">${i.flags.includes('blocked_aging') ? `보류 ${days(today(), (i.blocked_since || today()).slice(0, 10))}일` : i.flags.includes('triage_overdue') ? `이슈 분류 대기 ${days(today(), i.created)}일 (접수 ${i.created.slice(5)})` : i.flags.includes('missing_update') ? `마감 ${days(today(), i.due)}일 지남, 갱신 없음` : '담당자 없음'}</td>
-        <td>${esc(i.assignee || '없음')}</td><td><b>${esc(ownerOf(i))}</b></td><td>${nextMeeting()}</td><td>${ageOf(i) ?? 0}일</td></tr>`).join('') || '<tr><td colspan="8" class="muted">없음</td></tr>'}</tbody></table>` });
-  }
-
   // Shared core for the first screen (views/home.js): same data, same rules, one source of truth.
   window.ExecCore = {
     data: () => ({ H, I, RA, W, err, loading }),
-    load, lineStats, lineRow, strip, decisions, nextMeeting, days,
+    load, lineStats, lineRow, strip, nextMeeting, days,
     today: () => H && H.today,
     esc, wp, DOT, TXT, COL,
   };
