@@ -1,0 +1,4 @@
+# Preserve the deployed static release byte-for-byte, including existing line endings.
+"design_handoff_plm_dashboard/PLM Dashboard.html" -text whitespace=trailing-space,space-before-tab,cr-at-eol,-blank-at-eof
+design_handoff_plm_dashboard/executive-app.js -text whitespace=trailing-space,space-before-tab,cr-at-eol,-blank-at-eof
+design_handoff_plm_dashboard/style.css -text whitespace=trailing-space,space-before-tab,cr-at-eol,-blank-at-eof

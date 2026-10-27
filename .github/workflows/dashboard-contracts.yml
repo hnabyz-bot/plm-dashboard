@@ -1,0 +1,33 @@
+name: Dashboard contracts
+on:
+  pull_request:
+    paths:
+      - 'design_handoff_plm_dashboard/**'
+      - 'deploy/windows/**'
+      - 'scripts/local-dashboard-server.py'
+      - 'tests/**'
+      - '.github/workflows/dashboard-contracts.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'design_handoff_plm_dashboard/**'
+      - 'deploy/windows/**'
+      - 'scripts/local-dashboard-server.py'
+      - 'tests/**'
+permissions:
+  contents: read
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: node --check design_handoff_plm_dashboard/executive-app.js
+      - run: node --test tests/*.cjs
+      - run: python tests/office-server.test.py
+      - run: python tests/local-server.test.py

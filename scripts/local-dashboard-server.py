@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Serve the dashboard locally and proxy /op requests to the live dashboard host."""
+"""Serve the dashboard locally and proxy aggregate and /op reads to the live dashboard host."""
 
 import argparse
 import json
@@ -10,7 +10,8 @@ from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
+from urllib.parse import urlsplit
+from urllib.request import HTTPRedirectHandler, Request, build_opener, urlopen
 
 
 HOP_BY_HOP_HEADERS = {
@@ -24,12 +25,24 @@ HOP_BY_HOP_HEADERS = {
     "upgrade",
 }
 HEALTH_SERVICE_NAME = "plm-dashboard-local"
+DATA_PATHS = frozenset('/data/' + name + '.json' for name in
+                       ('health', 'insights', 'weekly', 'ra', 'config/tracked-projects'))
+
+
+class NoAggregateRedirect(HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+AGGREGATE_OPENER = build_opener(NoAggregateRedirect())
 
 
 class DashboardHandler(SimpleHTTPRequestHandler):
     upstream = ""
 
     def do_GET(self):
+        if self.read_aggregate("GET"):
+            return
         if self.path == "/__plm_health":
             self.send_health_response("GET")
             return
@@ -45,6 +58,8 @@ class DashboardHandler(SimpleHTTPRequestHandler):
         super().do_GET()
 
     def do_HEAD(self):
+        if self.read_aggregate("HEAD"):
+            return
         if self.path == "/__plm_health":
             self.send_health_response("HEAD")
             return
@@ -52,6 +67,33 @@ class DashboardHandler(SimpleHTTPRequestHandler):
             self.proxy_request("HEAD")
             return
         super().do_HEAD()
+
+    def read_aggregate(self, method):
+        path = urlsplit(self.path).path
+        if path not in DATA_PATHS:
+            if path == '/runtime/dashboard' or path.startswith('/data/'):
+                self.send_error(HTTPStatus.NOT_FOUND)
+                return True
+            return False
+        try:
+            request = Request(self.upstream + path,
+                              headers={'Accept': 'application/json'}, method='GET')
+            with AGGREGATE_OPENER.open(request, timeout=30) as response:
+                if response.status != 200:
+                    raise ValueError('Aggregate source response was not 200')
+                body = response.read()
+            status = HTTPStatus.OK
+        except (OSError, ValueError, URLError):
+            body = b'Aggregate source read failed; previous data was not refreshed.'
+            status = HTTPStatus.BAD_GATEWAY
+        self.send_response(status)
+        self.send_header('Content-Type', 'application/json; charset=utf-8' if status == 200 else 'text/plain; charset=utf-8')
+        self.send_header('Content-Length', str(len(body)))
+        self.send_header('Cache-Control', 'no-store')
+        self.end_headers()
+        if method != 'HEAD':
+            self.wfile.write(body)
+        return True
 
     def send_health_response(self, method):
         body = json.dumps(
