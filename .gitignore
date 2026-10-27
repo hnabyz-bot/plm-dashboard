@@ -239,3 +239,13 @@ nginx-secret*.conf
 
 # Hermes health snapshot (generated every 30 min by op_health_snapshot.py, #71)
 design_handoff_plm_dashboard/data/
+
+# Dashboard deployment: local runtime, configuration and real business snapshots
+*.local.json
+design_handoff_plm_dashboard/data/
+deploy/windows/runtime/
+deploy/windows/logs/
+deploy/windows/deployment.json
+
+# Site-specific operational records are reviewed separately before publication
+docs/operations/

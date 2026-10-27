@@ -1,0 +1,7 @@
+{
+  "python_executable": "C:/path/to/private-runtime/python.exe",
+  "source": "http://PRIVATE-COLLECTOR",
+  "bind_addresses": ["127.0.0.1", "OFFICE_LAN_IP", "TAILSCALE_IP"],
+  "port": 8766,
+  "log_file": "C:/path/to/dashboard/logs/dashboard.log"
+}
